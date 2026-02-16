@@ -1,4 +1,5 @@
 #!/bin/bash
+export DUBBO_GO_CONFIG_PATH=./go-server/conf/dubbogo.yaml
 go run go-server/cmd/server.go \
   -nacos-addr=192.168.139.230:8848 \
   -namespace=public \

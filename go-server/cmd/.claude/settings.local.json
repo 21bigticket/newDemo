@@ -16,7 +16,13 @@
       "Bash(kill:*)",
       "Bash(nc:*)",
       "Bash(xargs:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(go doc:*)",
+      "Bash(go build:*)",
+      "Bash(chmod:*)",
+      "Bash(go test:*)",
+      "Bash(go get:*)",
+      "Bash(go mod tidy:*)"
     ]
   }
 }

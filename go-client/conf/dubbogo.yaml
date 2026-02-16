@@ -21,6 +21,6 @@ dubbo:
     address: 192.168.139.230:8848
     namespace: public
     group: DEFAULT_GROUP
-    data-id: go-client-config
+    data-id: go-client
     timeout: 3s
     file-extension: yaml
