@@ -22,7 +22,9 @@ import (
 	"helloworld/api"
 
 	"dubbo.apache.org/dubbo-go/v3"
+	"dubbo.apache.org/dubbo-go/v3/config_center"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
+	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
 )
 
@@ -62,8 +64,25 @@ func (s *GreeterProvider) SayHelloStream(ctx context.Context, stream api.Greeter
 }
 
 func main() {
-	// 创建 dubbo 实例（使用配置文件 conf/dubbogo.yaml）
-	ins, err := dubbo.NewInstance()
+	// nacos 地址
+	nacosAddr := "192.168.139.230:8848"
+
+	// 创建 dubbo 实例，配置 nacos 注册中心和配置中心
+	// 使用一个不存在的 DataID 避免 ConfigCenter 加载额外配置
+	ins, err := dubbo.NewInstance(
+		dubbo.WithName("go-server"),
+		dubbo.WithConfigCenter(
+			config_center.WithNacos(),
+			config_center.WithAddress(nacosAddr),
+			config_center.WithDataID("go-server-config"),
+			config_center.WithGroup("DEFAULT_GROUP"),
+			config_center.WithFileExtYaml(),
+		),
+		dubbo.WithRegistry(
+			registry.WithNacos(),
+			registry.WithAddress(nacosAddr),
+		),
+	)
 	if err != nil {
 		logger.Errorf("new dubbo instance failed: %v", err)
 		panic(err)
