@@ -19,68 +19,38 @@ package main
 
 import (
 	"context"
-	"helloworld/api"
+	greet "helloworld/greet"
 
 	"dubbo.apache.org/dubbo-go/v3"
-	"dubbo.apache.org/dubbo-go/v3/config_center"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
+	"dubbo.apache.org/dubbo-go/v3/protocol"
 	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
 )
 
-type GreeterProvider struct {
+type GreetTripleServer struct {
 }
 
-func (s *GreeterProvider) SayHello(ctx context.Context, in *api.HelloRequest) (*api.User, error) {
-	logger.Infof("Dubbo3 GreeterV2Handler get user name = %s\n", in.Name)
-	return &api.User{Name: "Hello " + in.Name, Id: "12345", Age: 21}, nil
-}
-
-func (s *GreeterProvider) SayHelloStream(ctx context.Context, stream api.Greeter_SayHelloStreamServer) error {
-	logger.Info("SayHelloStream method called")
-
-	for {
-		req, err := stream.Recv()
-		if err != nil {
-			logger.Infof("SayHelloStream recv finished or error: %v", err)
-			break
-		}
-
-		logger.Infof("Received stream request: %s", req.Name)
-
-		user := &api.User{
-			Name: "Hello " + req.Name,
-			Id:   "stream-12345",
-			Age:  21,
-		}
-
-		if err := stream.Send(user); err != nil {
-			logger.Errorf("SayHelloStream send error: %v", err)
-			return err
-		}
-	}
-
-	return nil
+func (srv *GreetTripleServer) Greet(ctx context.Context, req *greet.GreetRequest) (*greet.GreetResponse, error) {
+	logger.Infof("dobbo-do-service receive: %v", req)
+	resp := &greet.GreetResponse{Greeting: req.Name}
+	return resp, nil
 }
 
 func main() {
 	// nacos 地址
 	nacosAddr := "192.168.139.230:8848"
 
-	// 创建 dubbo 实例，配置 nacos 注册中心和配置中心
-	// 使用一个不存在的 DataID 避免 ConfigCenter 加载额外配置
+	// 创建 dubbo 实例（纯代码配置）
 	ins, err := dubbo.NewInstance(
 		dubbo.WithName("go-server"),
-		dubbo.WithConfigCenter(
-			config_center.WithNacos(),
-			config_center.WithAddress(nacosAddr),
-			config_center.WithDataID("go-server-config"),
-			config_center.WithGroup("DEFAULT_GROUP"),
-			config_center.WithFileExtYaml(),
-		),
 		dubbo.WithRegistry(
 			registry.WithNacos(),
 			registry.WithAddress(nacosAddr),
+		),
+		dubbo.WithProtocol(
+			protocol.WithTriple(),
+			protocol.WithPort(20001),
 		),
 	)
 	if err != nil {
@@ -96,7 +66,7 @@ func main() {
 	}
 
 	// 注册服务（使用 V2 接口）
-	if err := api.RegisterGreeterHandler(srv, &GreeterProvider{}); err != nil {
+	if err := greet.RegisterGreetServiceHandler(srv, &GreetTripleServer{}); err != nil {
 		logger.Errorf("register greeter v2 handler failed: %v", err)
 		panic(err)
 	}

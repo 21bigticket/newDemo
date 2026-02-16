@@ -11,7 +11,12 @@
       "Bash(DUBBO_GO_CONFIG_PATH=/Users/mac/code/goroot/newDemo/go-server/conf/dubbogo.yaml timeout 10 go run:*)",
       "Bash(DUBBO_GO_CONFIG_PATH=/Users/mac/code/goroot/newDemo/go-server/conf/dubbogo.yaml timeout 3 go run:*)",
       "Bash(DUBBO_GO_CONFIG_PATH=/Users/mac/code/goroot/newDemo/go-server/conf/dubbogo.yaml timeout 5 go run:*)",
-      "Bash(DUBBO_GO_CONFIG_PATH=/Users/mac/code/goroot/newDemo/go-server/conf/dubbogo.yaml go run:*)"
+      "Bash(DUBBO_GO_CONFIG_PATH=/Users/mac/code/goroot/newDemo/go-server/conf/dubbogo.yaml go run:*)",
+      "Bash(xargs kill:*)",
+      "Bash(kill:*)",
+      "Bash(nc:*)",
+      "Bash(xargs:*)",
+      "Bash(python3:*)"
     ]
   }
 }

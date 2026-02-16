@@ -21,12 +21,11 @@ import (
 	"context"
 
 	"dubbo.apache.org/dubbo-go/v3"
-	"dubbo.apache.org/dubbo-go/v3/config_center"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
 	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
 
-	"helloworld/api"
+	"helloworld/greet"
 )
 
 func main() {
@@ -36,13 +35,6 @@ func main() {
 	// 创建 dubbo 实例，配置 nacos 注册中心
 	ins, err := dubbo.NewInstance(
 		dubbo.WithName("go-client"),
-		dubbo.WithConfigCenter(
-			config_center.WithNacos(),
-			config_center.WithAddress(nacosAddr),
-			config_center.WithDataID("go-client-config"),
-			config_center.WithGroup("DEFAULT_GROUP"),
-			config_center.WithFileExtYaml(),
-		),
 		dubbo.WithRegistry(
 			registry.WithNacos(),
 			registry.WithAddress(nacosAddr),
@@ -60,8 +52,8 @@ func main() {
 		panic(err)
 	}
 
-	// 创建 GreeterV2 服务客户端
-	greeterClient, err := api.NewGreeter(cli)
+	// 创建 greeterV2 服务客户端
+	greeterClient, err := greet.NewGreetService(cli)
 	if err != nil {
 		logger.Errorf("new greeter v2 client failed: %v", err)
 		panic(err)
@@ -69,10 +61,10 @@ func main() {
 
 	// 调用服务
 	logger.Info("start to test dubbo")
-	req := &api.HelloRequest{
+	req := &greet.GreetRequest{
 		Name: "laurence",
 	}
-	reply, err := greeterClient.SayHello(context.Background(), req)
+	reply, err := greeterClient.Greet(context.Background(), req)
 	if err != nil {
 		logger.Errorf("call SayHello failed: %v", err)
 		panic(err)

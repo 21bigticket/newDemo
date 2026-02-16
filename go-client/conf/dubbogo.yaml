@@ -24,8 +24,3 @@ dubbo:
     data-id: go-client-config
     timeout: 3s
     file-extension: yaml
-  consumer:
-    references:
-      GreeterClientImpl:
-        protocol: tri
-        interface: ""

@@ -16,26 +16,20 @@
  */
 
 syntax = "proto3";
-package api;
 
-option go_package = "helloworld/;api";
+package greet;
 
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (User) {}
-  // Sends a greeting via stream
-  rpc SayHelloStream (stream HelloRequest) returns (stream User) {}
-}
+// 修复：导入路径添加 ./，包名保留 greet
+option go_package = "./helloworld;greet";
 
-// The request message containing the user's name.
-message HelloRequest {
+message GreetRequest {
   string name = 1;
 }
 
-// The response message containing the greetings
-message User {
-  string name = 1;
-  string id = 2;
-  int32 age = 3;
+message GreetResponse {
+  string greeting = 1;
+}
+
+service GreetService {
+  rpc Greet(GreetRequest) returns (GreetResponse) {}
 }
