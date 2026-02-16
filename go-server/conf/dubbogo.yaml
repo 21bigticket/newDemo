@@ -1,0 +1,25 @@
+#dubbo:
+#  application:
+#    name: go-server
+#    organization: dubbo-go
+#  metadata:
+#    type: remote
+#    service:
+#      enabled: true
+#  registries:
+#    nacos:
+#      protocol: nacos
+#      timeout: 5s
+#      address: 192.168.139.230:8848
+#  config_center:
+#    protocol: nacos
+#    address: 192.168.139.230:8848
+#    namespace: public
+#    group: DEFAULT_GROUP
+#    data-id: go-server-config
+#    timeout: 3s
+#    file-extension: yaml
+#  protocols:
+#    triple:
+#      name: tri
+#      port: 20000
