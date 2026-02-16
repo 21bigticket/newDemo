@@ -19,7 +19,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"helloworld/config"
 	greet "helloworld/greet"
 
@@ -29,13 +28,9 @@ import (
 	"dubbo.apache.org/dubbo-go/v3/protocol"
 	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
-type GreetTripleServer struct {
-	redisClient *redis.Client
-}
+type GreetTripleServer struct{}
 
 func (srv *GreetTripleServer) Greet(ctx context.Context, req *greet.GreetRequest) (*greet.GreetResponse, error) {
 	logger.Infof("dobbo-do-service receive: %v", req)
@@ -76,66 +71,12 @@ func main() {
 		panic(err)
 	}
 
-	// 初始化应用配置管理器（从 dubbo-go 的配置中心获取业务配置）
-	if err := config.InitAppConfig(cfg.AppName, cfg.Nacos.Group); err != nil {
-		logger.Warnf("Failed to init app config: %v", err)
-	}
-
-	// 获取业务配置的三种方式：
-
-	// 方式1: 使用简单的 Get 方法
-	fmt.Println("Redis host:", config.GetString("redis.host"))
-	fmt.Println("Redis port:", config.GetInt("redis.port"))
-
-	// 方式2: 获取整个配置 map
-	redisConfig := config.GetStringMap("redis")
-	if redisConfig != nil {
-		fmt.Println("完整Redis配置:", redisConfig)
-	}
-
-	// 方式3: 解析到结构体（推荐）
-	redisCfg, err := config.GetRedisConfigFromDubbo()
+	// 初始化 Redis 和 MySQL 客户端（统一管理）
+	clients, err := config.InitializeClients(cfg.AppName, cfg.Nacos.Group)
 	if err != nil {
-		logger.Warnf("Failed to get redis config: %v", err)
-	} else {
-		// 创建 Redis 客户端
-		redisClient, err := redisCfg.CreateRedisClient()
-		if err != nil {
-			logger.Errorf("Failed to create redis client: %v", err)
-		} else {
-			// 测试 Redis 连接
-			ctx := context.Background()
-			if err := redisClient.Ping(ctx).Err(); err != nil {
-				logger.Errorf("Redis ping failed: %v", err)
-			} else {
-				logger.Infof("Redis connected successfully: %s", redisCfg.GetAddr())
-			}
-			defer redisClient.Close()
-		}
+		logger.Warnf("Failed to initialize some clients: %v", err)
 	}
-
-	// MySQL 数据库初始化
-	var db *gorm.DB
-	mysqlConfig, err := config.GetMySQLConfigFromDubbo()
-	if err != nil {
-		logger.Warnf("Failed to get mysql config: %v", err)
-	} else {
-		// 创建 GORM 数据库连接
-		db, err = mysqlConfig.CreateDB()
-		if err != nil {
-			logger.Errorf("Failed to create database connection: %v", err)
-		} else {
-			// 测试数据库连接
-			sqlDB, _ := db.DB()
-			if err := sqlDB.Ping(); err != nil {
-				logger.Errorf("Database ping failed: %v", err)
-			} else {
-				logger.Infof("MySQL connected successfully: %s@%s:%d/%s",
-					mysqlConfig.Username, mysqlConfig.Host, mysqlConfig.Port, mysqlConfig.Database)
-			}
-			defer sqlDB.Close()
-		}
-	}
+	defer config.CloseClients(clients)
 
 	// 创建 server
 	srv, err := ins.NewServer()
