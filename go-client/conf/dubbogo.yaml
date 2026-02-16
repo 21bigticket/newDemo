@@ -1,0 +1,31 @@
+dubbo:
+  application:
+    name: go-client
+    module: sample
+    version: 1.0.0
+    owner: owen
+    organization: owen
+  metrics:
+    enable: true
+    port: 9092
+    path: /metrics
+  # Nacos 注册中心配置
+  registries:
+    nacos:
+      protocol: nacos
+      timeout: 5s
+      address: 192.168.139.230:8848
+  # Nacos 配置中心配置
+  config_center:
+    protocol: nacos
+    address: 192.168.139.230:8848
+    namespace: public
+    group: DEFAULT_GROUP
+    data-id: go-client-config
+    timeout: 3s
+    file-extension: yaml
+  consumer:
+    references:
+      GreeterClientImpl:
+        protocol: tri
+        interface: ""
