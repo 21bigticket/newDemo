@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"helloworld/config"
 	greet "helloworld/greet"
 
 	"dubbo.apache.org/dubbo-go/v3"
@@ -39,18 +40,23 @@ func (srv *GreetTripleServer) Greet(ctx context.Context, req *greet.GreetRequest
 
 func main() {
 	// nacos 地址
-	nacosAddr := "192.168.139.230:8848"
+	cfg, err := config.ParseConfig("")
+	if err != nil {
+		logger.Errorf("parse config failed: %v", err)
+		panic(err)
+	}
+	logger.Infof("Starting server with config: %+v", cfg)
 
 	// 创建 dubbo 实例（纯代码配置）
 	ins, err := dubbo.NewInstance(
-		dubbo.WithName("go-server"),
+		dubbo.WithName(cfg.AppName),
 		dubbo.WithRegistry(
 			registry.WithNacos(),
-			registry.WithAddress(nacosAddr),
+			registry.WithAddress(cfg.Nacos.Address),
 		),
 		dubbo.WithProtocol(
 			protocol.WithTriple(),
-			protocol.WithPort(20001),
+			protocol.WithPort(cfg.AppPort),
 		),
 	)
 	if err != nil {

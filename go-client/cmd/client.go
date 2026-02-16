@@ -19,6 +19,7 @@ package main
 
 import (
 	"context"
+	"helloworld/config"
 
 	"dubbo.apache.org/dubbo-go/v3"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
@@ -30,14 +31,19 @@ import (
 
 func main() {
 	// nacos 地址
-	nacosAddr := "192.168.139.230:8848"
+	cfg, err := config.ParseConfig("")
+	if err != nil {
+		logger.Errorf("parse config failed: %v", err)
+		panic(err)
+	}
+	logger.Infof("Starting server with config: %+v", cfg)
 
 	// 创建 dubbo 实例，配置 nacos 注册中心
 	ins, err := dubbo.NewInstance(
-		dubbo.WithName("go-client"),
+		dubbo.WithName(cfg.AppName),
 		dubbo.WithRegistry(
 			registry.WithNacos(),
-			registry.WithAddress(nacosAddr),
+			registry.WithAddress(cfg.Nacos.Address),
 		),
 	)
 	if err != nil {
