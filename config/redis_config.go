@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -24,6 +25,34 @@ type RedisConfig struct {
 	IdleTimeout   string `json:"idle_timeout" yaml:"idle_timeout"`
 	IdleCheckFreq string `json:"idle_check_freq" yaml:"idle_check_freq"`
 	MaxConnAge    string `json:"max_conn_age" yaml:"max_conn_age"`
+}
+
+// CreateRedisClient 创建 Redis 客户端
+func (rc *RedisConfig) CreateRedisClient() (*redis.Client, error) {
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:            rc.GetAddr(),
+		Password:        rc.Password,
+		DB:              rc.DB,
+		PoolSize:        rc.PoolSize,
+		MinIdleConns:    rc.MinIdleConns,
+		DialTimeout:     parseDuration(rc.ConnTimeout),
+		ReadTimeout:     parseDuration(rc.ReadTimeout),
+		WriteTimeout:    parseDuration(rc.WriteTimeout),
+		PoolTimeout:     parseDuration(rc.PoolTimeout),
+		ConnMaxIdleTime: parseDuration(rc.IdleTimeout),
+		ConnMaxLifetime: parseDuration(rc.MaxConnAge),
+	})
+
+	// 测试连接
+	ctx, cancel := context.WithTimeout(context.Background(), parseDuration(rc.ConnTimeout))
+	defer cancel()
+
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		return nil, fmt.Errorf("redis connect fail: %v", err)
+	}
+
+	logger.Infof("Redis client created: addr=%s, db=%d", rc.GetAddr(), rc.DB)
+	return redisClient, nil
 }
 
 // GetAddr 获取 Redis 连接地址
@@ -105,24 +134,4 @@ func ParseRedisConfig(redisMap map[string]interface{}) (*RedisConfig, error) {
 
 	logger.Infof("Parsed Redis config: %+v", config)
 	return config, nil
-}
-
-// CreateRedisClient 创建 Redis 客户端
-func (rc *RedisConfig) CreateRedisClient() (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:            rc.GetAddr(),
-		Password:        rc.Password,
-		DB:              rc.DB,
-		PoolSize:        rc.PoolSize,
-		MinIdleConns:    rc.MinIdleConns,
-		DialTimeout:     parseDuration(rc.ConnTimeout),
-		ReadTimeout:     parseDuration(rc.ReadTimeout),
-		WriteTimeout:    parseDuration(rc.WriteTimeout),
-		PoolTimeout:     parseDuration(rc.PoolTimeout),
-		ConnMaxIdleTime: parseDuration(rc.IdleTimeout),
-		ConnMaxLifetime: parseDuration(rc.MaxConnAge),
-	})
-
-	logger.Infof("Redis client created: addr=%s, db=%d", rc.GetAddr(), rc.DB)
-	return client, nil
 }

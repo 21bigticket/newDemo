@@ -28,6 +28,57 @@ type MySQLConfig struct {
 	ConnMaxLifetime time.Duration `json:"conn_max_lifetime" yaml:"conn_max_lifetime"`
 }
 
+// CreateDB 创建 GORM 数据库连接
+func (mc *MySQLConfig) CreateDB() (*gorm.DB, error) {
+	dsn := mc.DSN()
+
+	logger.Infof("MySQL DSN: %s:***@tcp(%s:%d)/%s", mc.Username, mc.Host, mc.Port, mc.Database)
+
+	// 配置 GORM
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		// 禁用外键约束
+		DisableForeignKeyConstraintWhenMigrating: true,
+		// 跳过默认事务
+		SkipDefaultTransaction: true,
+		// 预编译SQL
+		PrepareStmt: true,
+		// 日志配置
+		Logger: gormlogger.Default.LogMode(gormlogger.Silent),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
+	}
+
+	// 获取底层 sql.DB
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	// 设置连接池参数
+	if mc.MaxIdleConns > 0 {
+		sqlDB.SetMaxIdleConns(mc.MaxIdleConns)
+	}
+	if mc.MaxOpenConns > 0 {
+		sqlDB.SetMaxOpenConns(mc.MaxOpenConns)
+	}
+
+	// 设置连接最大存活时间
+	if mc.ConnMaxLifetime > 0 {
+		sqlDB.SetConnMaxLifetime(mc.ConnMaxLifetime)
+	}
+
+	// 测试连接
+	if err := sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	logger.Infof("MySQL connected successfully: %s@%s:%d/%s",
+		mc.Username, mc.Host, mc.Port, mc.Database)
+
+	return db, nil
+}
+
 // DSN 生成MySQL连接字符串（带参数转义）
 func (mc *MySQLConfig) DSN() string {
 	// 转义特殊字符
@@ -91,57 +142,6 @@ func parseDurationValue(value interface{}) time.Duration {
 		logger.Warnf("Unsupported duration type %T for value %v", value, value)
 		return 0
 	}
-}
-
-// CreateDB 创建 GORM 数据库连接
-func (mc *MySQLConfig) CreateDB() (*gorm.DB, error) {
-	dsn := mc.DSN()
-
-	logger.Infof("MySQL DSN: %s:***@tcp(%s:%d)/%s", mc.Username, mc.Host, mc.Port, mc.Database)
-
-	// 配置 GORM
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		// 禁用外键约束
-		DisableForeignKeyConstraintWhenMigrating: true,
-		// 跳过默认事务
-		SkipDefaultTransaction: true,
-		// 预编译SQL
-		PrepareStmt: true,
-		// 日志配置
-		Logger: gormlogger.Default.LogMode(gormlogger.Silent),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	// 获取底层 sql.DB
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
-	}
-
-	// 设置连接池参数
-	if mc.MaxIdleConns > 0 {
-		sqlDB.SetMaxIdleConns(mc.MaxIdleConns)
-	}
-	if mc.MaxOpenConns > 0 {
-		sqlDB.SetMaxOpenConns(mc.MaxOpenConns)
-	}
-
-	// 设置连接最大存活时间
-	if mc.ConnMaxLifetime > 0 {
-		sqlDB.SetConnMaxLifetime(mc.ConnMaxLifetime)
-	}
-
-	// 测试连接
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	logger.Infof("MySQL connected successfully: %s@%s:%d/%s",
-		mc.Username, mc.Host, mc.Port, mc.Database)
-
-	return db, nil
 }
 
 // GetMySQLConfigFromDubbo 从 dubbo-go 配置中心获取 MySQL 配置
