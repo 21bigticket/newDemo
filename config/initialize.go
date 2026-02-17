@@ -18,15 +18,25 @@ type Clients struct {
 // 这个函数可以从 Nacos 获取配置并初始化 Redis 和 MySQL 连接
 // 方便 go-client 和 go-server 等多个项目复用
 func InitializeClients(appName, group string) (*Clients, error) {
-	// 1. 初始化应用配置管理器
+	// 初始化应用配置管理器
 	if err := InitAppConfig(appName, group); err != nil {
 		logger.Warnf("Failed to init app config: %v", err)
 		return nil, err
 	}
 
+	//  初始化日志系统
+	logCfg, err := GetLogConfigFromNacos()
+	if err != nil {
+		logger.Warnf("Failed to get log config: %v", err)
+	} else {
+		if err := InitLogger(logCfg); err != nil {
+			logger.Warnf("Failed to init logger: %v", err)
+		}
+	}
+
 	clients := &Clients{}
 
-	// 2. 初始化 Redis
+	// 初始化 Redis
 	redisClient, err := initRedis()
 	if err != nil {
 		logger.Warnf("Failed to init redis: %v", err)
@@ -35,7 +45,7 @@ func InitializeClients(appName, group string) (*Clients, error) {
 		clients.Redis = redisClient
 	}
 
-	// 3. 初始化 MySQL
+	// 初始化 MySQL
 	db, err := initMySQL()
 	if err != nil {
 		logger.Warnf("Failed to init mysql: %v", err)
@@ -43,7 +53,6 @@ func InitializeClients(appName, group string) (*Clients, error) {
 	} else {
 		clients.MySQL = db
 	}
-
 	logger.Infof("Clients initialized: Redis=%v, MySQL=%v",
 		clients.Redis != nil, clients.MySQL != nil)
 
