@@ -22,7 +22,7 @@ type AppConfigManager struct {
 	mu   sync.RWMutex
 }
 
-// Init 从 dubbo-go 配置中心初始化应用配置
+// InitAppConfig Init 从 dubbo-go 配置中心初始化应用配置
 // 必须在 dubbo_config.Load() 之后调用
 func InitAppConfig(dataID, group string) error {
 	dynamicConfig := conf.GetEnvInstance().GetDynamicConfiguration()

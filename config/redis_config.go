@@ -5,11 +5,8 @@ import (
 	"strings"
 	"time"
 
-	conf "dubbo.apache.org/dubbo-go/v3/common/config"
-	"dubbo.apache.org/dubbo-go/v3/config_center"
 	"github.com/dubbogo/gost/log/logger"
 	"github.com/redis/go-redis/v9"
-	"gopkg.in/yaml.v3"
 )
 
 // RedisConfig 结构体定义
@@ -51,30 +48,10 @@ func parseDuration(s string) time.Duration {
 
 // GetRedisConfigFromDubbo 从 dubbo-go 配置中心获取 Redis 配置
 func GetRedisConfigFromDubbo() (*RedisConfig, error) {
-	// 从 dubbo-go 环境实例获取动态配置
-	dynamicConfig := conf.GetEnvInstance().GetDynamicConfiguration()
-	if dynamicConfig == nil {
-		return nil, fmt.Errorf("dynamic configuration not initialized, please ensure config center is configured")
-	}
-
-	// 获取配置内容 (使用空字符串作为key，获取整个配置文件)
-	// 或者使用 dataId 作为 key
-	content, err := dynamicConfig.GetProperties("go-server", config_center.WithGroup("DEFAULT_GROUP"))
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get config from dubbo config center: %w", err)
-	}
-
-	if content == "" {
-		return nil, fmt.Errorf("config content is empty")
-	}
-
-	logger.Infof("Got config from dubbo config center: %s", content)
-
-	// 解析 YAML 配置
-	var configMap map[string]interface{}
-	if err := yaml.Unmarshal([]byte(content), &configMap); err != nil {
-		return nil, fmt.Errorf("failed to parse yaml config: %w", err)
+	configMap := GetStringMap("redis")
+	if configMap == nil {
+		logger.Errorf("redis config not found")
+		return nil, fmt.Errorf("redis config not found")
 	}
 
 	// 提取 redis 配置
@@ -82,12 +59,7 @@ func GetRedisConfigFromDubbo() (*RedisConfig, error) {
 }
 
 // ParseRedisConfig 从配置 map 中解析 Redis 配置
-func ParseRedisConfig(params map[string]interface{}) (*RedisConfig, error) {
-	redisMap, ok := params["redis"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("redis config not found or invalid format")
-	}
-
+func ParseRedisConfig(redisMap map[string]interface{}) (*RedisConfig, error) {
 	config := &RedisConfig{}
 
 	// 解析各个字段
@@ -153,10 +125,4 @@ func (rc *RedisConfig) CreateRedisClient() (*redis.Client, error) {
 
 	logger.Infof("Redis client created: addr=%s, db=%d", rc.GetAddr(), rc.DB)
 	return client, nil
-}
-
-// GetRedisConfigFromNacos 从 Nacos 获取 Redis 配置 (兼容旧版本)
-// 推荐使用 GetRedisConfigFromDubbo() 从 dubbo-go 配置中心获取
-func GetRedisConfigFromNacos(nacosAddr, namespace, group, dataID string) (*RedisConfig, error) {
-	return GetRedisConfigFromDubbo()
 }
