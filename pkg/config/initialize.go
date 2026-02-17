@@ -18,17 +18,17 @@ type Clients struct {
 func InitializeClients(appName, group string) (*Clients, error) {
 	// 初始化应用配置管理器
 	if err := InitAppConfig(appName, group); err != nil {
-		logger.Warnf("Failed to init app config: %v", err)
+		logger.Errorf("Failed to init app config: %v", err)
 		return nil, err
 	}
 
 	//  初始化日志系统
 	logCfg, err := GetLogConfigFromNacos()
 	if err != nil {
-		logger.Warnf("Failed to get log config: %v", err)
+		logger.Errorf("Failed to get log config: %v", err)
 	} else {
 		if err := InitLogger(logCfg); err != nil {
-			logger.Warnf("Failed to init logger: %v", err)
+			logger.Errorf("Failed to init logger: %v", err)
 		}
 	}
 
@@ -37,7 +37,7 @@ func InitializeClients(appName, group string) (*Clients, error) {
 	// 初始化 Redis
 	redisClient, err := initRedis()
 	if err != nil {
-		logger.Warnf("Failed to init redis: %v", err)
+		logger.Errorf("Failed to init redis: %v", err)
 		// Redis 失败不阻塞，继续初始化 MySQL
 	} else {
 		clients.Redis = redisClient
@@ -46,7 +46,7 @@ func InitializeClients(appName, group string) (*Clients, error) {
 	// 初始化 MySQL
 	db, err := initMySQL()
 	if err != nil {
-		logger.Warnf("Failed to init mysql: %v", err)
+		logger.Errorf("Failed to init mysql: %v", err)
 		// MySQL 失败不阻塞
 	} else {
 		clients.MySQL = db

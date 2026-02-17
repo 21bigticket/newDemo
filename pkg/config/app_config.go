@@ -32,7 +32,7 @@ func InitAppConfig(dataID, group string) error {
 	// 获取配置内容
 	content, err := dynamicConfig.GetProperties(dataID, config_center.WithGroup(group))
 	if err != nil {
-		logger.Warnf("Failed to get config from center: %v", err)
+		logger.Errorf("Failed to get config from center: %v", err)
 		return err
 	}
 

@@ -51,7 +51,7 @@ func main() {
 
 	clients, err := config.InitializeClients(cfg.AppName, cfg.Nacos.Group)
 	if err != nil {
-		logger.Warnf("Failed to initialize some clients: %v", err)
+		logger.Errorf("Failed to initialize some clients: %v", err)
 	}
 	defer config.CloseClients(clients)
 

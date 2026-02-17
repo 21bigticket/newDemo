@@ -69,7 +69,7 @@ func parseDuration(s string) time.Duration {
 	s = strings.Trim(s, `"`)
 	d, err := time.ParseDuration(s)
 	if err != nil {
-		logger.Warnf("Failed to parse duration %s: %v, using default 0", s, err)
+		logger.Errorf("Failed to parse duration %s: %v, using default 0", s, err)
 		return 0
 	}
 	return d

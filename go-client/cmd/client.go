@@ -41,6 +41,11 @@ func main() {
 		logger.Errorf("new dubbo instance failed: %v", err)
 		panic(err)
 	}
+	clients, err := config.InitializeClients(cfg.AppName, cfg.Nacos.Group)
+	if err != nil {
+		logger.Errorf("Failed to initialize some clients: %v", err)
+	}
+	defer config.CloseClients(clients)
 
 	// 创建 client
 	cli, err := ins.NewClient()

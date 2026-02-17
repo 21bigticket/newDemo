@@ -139,7 +139,7 @@ func parseDurationValue(value interface{}) time.Duration {
 	case float32:
 		return time.Duration(v) * time.Second
 	default:
-		logger.Warnf("Unsupported duration type %T for value %v", value, value)
+		logger.Errorf("Unsupported duration type %T for value %v", value, value)
 		return 0
 	}
 }
