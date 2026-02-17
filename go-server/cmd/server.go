@@ -19,14 +19,11 @@ package main
 
 import (
 	"context"
-	"helloworld/config"
 	greet "helloworld/greet"
+	config "helloworld/pkg/config"
+	"helloworld/pkg/instance"
 
-	"dubbo.apache.org/dubbo-go/v3"
-	"dubbo.apache.org/dubbo-go/v3/config_center"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
-	"dubbo.apache.org/dubbo-go/v3/protocol"
-	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
 )
 
@@ -39,39 +36,19 @@ func (srv *GreetTripleServer) Greet(ctx context.Context, req *greet.GreetRequest
 }
 
 func main() {
-	cfg, err := config.ParseConfig("")
+	cfg, err := config.ParseConfig()
 	if err != nil {
 		logger.Errorf("parse config failed: %v", err)
 		panic(err)
 	}
-	logger.Infof("Starting server with config: %+v", cfg)
+	logger.Debugf("Starting server with config: %+v", cfg)
 
-	// 创建 dubbo 实例（纯代码配置）
-	// 必须先创建 dubbo instance 初始化配置中心后，才能获取业务配置
-	ins, err := dubbo.NewInstance(
-		dubbo.WithName(cfg.AppName),
-		dubbo.WithConfigCenter(
-			config_center.WithNacos(),
-			config_center.WithDataID(cfg.AppName),
-			config_center.WithAddress(cfg.Nacos.Address),
-			config_center.WithNamespace(cfg.Nacos.Namespace),
-			config_center.WithGroup(cfg.Nacos.Group),
-		),
-		dubbo.WithRegistry(
-			registry.WithNacos(),
-			registry.WithAddress(cfg.Nacos.Address),
-		),
-		dubbo.WithProtocol(
-			protocol.WithTriple(),
-			protocol.WithPort(cfg.AppPort),
-		),
-	)
+	ins, err := instance.InitInstance(cfg)
 	if err != nil {
 		logger.Errorf("new dubbo instance failed: %v", err)
 		panic(err)
 	}
 
-	// 初始化 Redis 和 MySQL 客户端（统一管理）
 	clients, err := config.InitializeClients(cfg.AppName, cfg.Nacos.Group)
 	if err != nil {
 		logger.Warnf("Failed to initialize some clients: %v", err)

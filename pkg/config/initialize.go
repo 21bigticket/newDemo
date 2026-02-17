@@ -15,8 +15,6 @@ type Clients struct {
 }
 
 // InitializeClients 初始化所有客户端连接
-// 这个函数可以从 Nacos 获取配置并初始化 Redis 和 MySQL 连接
-// 方便 go-client 和 go-server 等多个项目复用
 func InitializeClients(appName, group string) (*Clients, error) {
 	// 初始化应用配置管理器
 	if err := InitAppConfig(appName, group); err != nil {

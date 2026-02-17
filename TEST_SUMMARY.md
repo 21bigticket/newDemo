@@ -132,9 +132,9 @@ Redis ping failed: dial tcp 192.168.139.230:6379: connect: connection refused
 
 ## 📚 相关文档
 
-- [完整使用指南](./config/USAGE.md)
+- [完整使用指南](pkg/config/USAGE.md)
 - [测试指南](./TEST_GUIDE.md)
-- [Viper集成说明](./config/VIPER_USAGE.md)
+- [Viper集成说明](pkg/config/VIPER_USAGE.md)
 
 ## 🚀 下一步
 

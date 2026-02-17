@@ -19,33 +19,24 @@ package main
 
 import (
 	"context"
-	"helloworld/config"
+	"helloworld/pkg/config"
+	"helloworld/pkg/instance"
 
-	"dubbo.apache.org/dubbo-go/v3"
 	_ "dubbo.apache.org/dubbo-go/v3/imports"
-	"dubbo.apache.org/dubbo-go/v3/registry"
 	"github.com/dubbogo/gost/log/logger"
 
 	"helloworld/greet"
 )
 
 func main() {
-	// nacos 地址
-	cfg, err := config.ParseConfig("")
+	cfg, err := config.ParseConfig()
 	if err != nil {
 		logger.Errorf("parse config failed: %v", err)
 		panic(err)
 	}
-	logger.Infof("Starting server with config: %+v", cfg)
+	logger.Debugf("Starting server with config: %+v", cfg)
 
-	// 创建 dubbo 实例，配置 nacos 注册中心
-	ins, err := dubbo.NewInstance(
-		dubbo.WithName(cfg.AppName),
-		dubbo.WithRegistry(
-			registry.WithNacos(),
-			registry.WithAddress(cfg.Nacos.Address),
-		),
-	)
+	ins, err := instance.InitInstance(cfg)
 	if err != nil {
 		logger.Errorf("new dubbo instance failed: %v", err)
 		panic(err)

@@ -36,7 +36,7 @@ var defaultNacosConfig = NacosConfig{
 }
 
 // ParseConfig 解析配置，优先级：命令行参数 > 环境变量 > 默认值
-func ParseConfig(appType string) (*Config, error) {
+func ParseConfig() (*Config, error) {
 	// 定义命令行参数
 	var (
 		nacosAddr   = flag.String("nacos-addr", "", "Nacos server address")
@@ -55,11 +55,10 @@ func ParseConfig(appType string) (*Config, error) {
 
 	// 处理帮助和版本信息
 	if *help {
-		printHelp(appType)
-		//os.Exit(0)
+		printHelp()
 	}
 	if *showVersion {
-		fmt.Printf("%s version 1.0.0\n", appType)
+		fmt.Printf("version 1.0.0\n")
 		os.Exit(0)
 	}
 
@@ -142,8 +141,8 @@ func getEnvInt(key string) int {
 }
 
 // printHelp 使用logger打印帮助信息
-func printHelp(appType string) {
-	logger.Info(fmt.Sprintf("Usage: %s [options]", appType))
+func printHelp() {
+	logger.Info(fmt.Sprintf("Usage [options]"))
 	logger.Info("")
 	logger.Info("Options:")
 	logger.Info("  -nacos-addr string    Nacos server address (e.g., 192.168.139.230:8848)")

@@ -172,4 +172,4 @@ go-server/cmd/
 2. **go-client**: 直接复用 `config.InitializeClients()` 获取 Redis 和 MySQL 连接
 3. **其他项目**: 可以直接引入 `config` 包使用相同的初始化逻辑
 
-参考：[config/CLIENT_USAGE.md](./config/CLIENT_USAGE.md)
+参考：[config/CLIENT_USAGE.md](pkg/config/CLIENT_USAGE.md)
